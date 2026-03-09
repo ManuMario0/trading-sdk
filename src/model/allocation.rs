@@ -1,56 +1,34 @@
-use crate::model::instrument::InstrumentId;
+use crate::{
+    journal::lineage::LineageId,
+    model::{instrument::InstrumentId, urgency::Urgency},
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Represents a held position in a specific instrument.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Position {
     /// The ID of the instrument.
-    instrument_id: InstrumentId,
+    pub instrument_id: InstrumentId,
     /// The quantity held. Positive for long, negative for short.
-    quantity: f64,
-}
-
-impl Position {
-    /// Creates a new Position instance.
-    ///
-    /// # Arguments
-    ///
-    /// * `instrument_id` - The unique identifier of the instrument.
-    /// * `quantity` - The quantity held (positive for long, negative for short).
-    ///
-    /// # Returns
-    ///
-    /// A new `Position` instance.
-    pub fn new(instrument_id: InstrumentId, quantity: f64) -> Self {
-        Self {
-            instrument_id,
-            quantity,
-        }
-    }
-
-    pub fn get_instrument_id(&self) -> InstrumentId {
-        self.instrument_id
-    }
-
-    pub fn get_quantity(&self) -> f64 {
-        self.quantity
-    }
-
-    pub fn set_quantity(&mut self, quantity: f64) {
-        self.quantity = quantity;
-    }
+    pub quantity: f64,
+    /// Urgency, specify if different than the allocation urency.
+    pub urgency: Option<Urgency>,
 }
 
 /// Represents a target allocation of instruments.
 /// This is used by strategies to communicate their desired holdings to the execution engine.
 /// It does not track cash, costs, or PnL.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Allocation {
     /// The timestamp of the allocation.
     timestamp: u128,
+    /// The lineage ID of the allocation.
+    pub lineage_id: LineageId,
     /// The positions in the allocation.
-    positions: HashMap<InstrumentId, Position>,
+    pub positions: HashMap<InstrumentId, Position>,
+    /// The urgency of the allocation.
+    pub urgency: Urgency,
 }
 
 impl Allocation {
@@ -59,13 +37,15 @@ impl Allocation {
     /// # Returns
     ///
     /// A new, empty `Allocation` instance tagged with current timestamp.
-    pub fn new() -> Self {
+    pub fn new(lineage: LineageId, urgency: Urgency) -> Self {
         Self {
             timestamp: std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
                 .as_millis(),
+            lineage_id: lineage,
             positions: HashMap::new(),
+            urgency,
         }
     }
 
@@ -81,7 +61,11 @@ impl Allocation {
         if quantity == 0.0 {
             self.positions.remove(&instrument_id);
         } else {
-            let position = Position::new(instrument_id, quantity);
+            let position = Position {
+                instrument_id,
+                quantity,
+                urgency: None,
+            };
             self.positions.insert(instrument_id, position);
         }
     }
@@ -99,10 +83,6 @@ impl Allocation {
         self.positions.get(&instrument_id)
     }
 
-    pub fn get_positions(&self) -> &HashMap<InstrumentId, Position> {
-        &self.positions
-    }
-
     pub fn get_timestamp(&self) -> u128 {
         self.timestamp
     }
@@ -114,17 +94,17 @@ mod tests {
 
     #[test]
     fn test_allocation_update() {
-        let mut allocation = Allocation::new();
+        let mut allocation = Allocation::new(LineageId::new(1), Urgency::BestEffort);
 
         // Add position
         allocation.update_position(1, 10.0);
         let pos = allocation.get_position(1).unwrap();
-        assert_eq!(pos.get_quantity(), 10.0);
+        assert_eq!(pos.quantity, 10.0);
 
         // Update position
         allocation.update_position(1, 20.0);
         let pos = allocation.get_position(1).unwrap();
-        assert_eq!(pos.get_quantity(), 20.0);
+        assert_eq!(pos.quantity, 20.0);
 
         // Remove position
         allocation.update_position(1, 0.0);
