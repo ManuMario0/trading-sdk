@@ -6,5 +6,5 @@ use crate::journal::lineage::LineageId;
 pub trait Journal {
     fn record(&mut self, lineage: LineageId, event: JournalEvent);
 
-    fn new_lineage() -> LineageId;
+    fn new_lineage(&self) -> LineageId;
 }

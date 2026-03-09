@@ -1,4 +1,5 @@
 pub mod allocation;
+pub mod context;
 pub mod execution;
 pub mod instrument;
 pub mod instrument_db;
