@@ -1,8 +1,6 @@
-use crate::model::{
-    allocation_batch::AllocationBatch,
-    market_data::PriceUpdate,
-    portfolio::{Actual, Target},
-};
+use crate::Allocation;
+use crate::model::portfolio::{Actual, Target};
+use crate::prelude::MarketDataBatch;
 
 pub trait Manager: Send {
     /// Called when the Portfolio Manager receives a batch of allocations.
@@ -14,7 +12,7 @@ pub trait Manager: Send {
     /// # Returns
     ///
     /// * `Option<Target>` - An optional target portfolio to publish.
-    fn on_allocation(&mut self, batch: AllocationBatch) -> Option<Target>;
+    fn on_allocation(&mut self, allocation: Allocation) -> Option<Target>;
 
     /// Called when the Portfolio Manager receives an update on the actual portfolio state.
     ///
@@ -36,19 +34,19 @@ pub trait Manager: Send {
     /// # Returns
     ///
     /// * `Option<Target>` - An optional target portfolio to publish.
-    fn on_market_data(&mut self, market_data: PriceUpdate) -> Option<Target>;
+    fn on_market_data(&mut self, market_data: MarketDataBatch) -> Option<Target>;
 }
 
 impl Manager for Box<dyn Manager> {
-    fn on_allocation(&mut self, batch: AllocationBatch) -> Option<Target> {
-        (**self).on_allocation(batch)
+    fn on_allocation(&mut self, allocation: Allocation) -> Option<Target> {
+        (**self).on_allocation(allocation)
     }
 
     fn on_portfolio(&mut self, portfolio: Actual) -> Option<Target> {
         (**self).on_portfolio(portfolio)
     }
 
-    fn on_market_data(&mut self, market_data: PriceUpdate) -> Option<Target> {
+    fn on_market_data(&mut self, market_data: MarketDataBatch) -> Option<Target> {
         (**self).on_market_data(market_data)
     }
 }

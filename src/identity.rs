@@ -2,13 +2,14 @@
 
 use serde::{Deserialize, Serialize};
 
-pub type Id = usize;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct AgentId(usize);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Identity {
     name: String,
     version: String,
-    identifier: Id,
+    identifier: AgentId,
 }
 
 impl Identity {
@@ -23,7 +24,7 @@ impl Identity {
     /// # Returns
     ///
     /// * `A new `Identity` instance.
-    pub fn new(name: &str, version: &str, identifier: Id) -> Self {
+    pub fn new(name: &str, version: &str, identifier: AgentId) -> Self {
         Self {
             name: name.to_string(),
             version: version.to_string(),
@@ -31,7 +32,7 @@ impl Identity {
         }
     }
 
-    pub fn get_identifier(&self) -> Id {
+    pub fn get_identifier(&self) -> AgentId {
         self.identifier
     }
 

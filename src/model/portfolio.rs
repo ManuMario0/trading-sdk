@@ -29,7 +29,7 @@ impl CashBalance {
 /// Represents the consolidated state of an account, including cash and positions.
 /// This structure is used for both the "Actual" state (from Execution Engine)
 /// and the "Target" state (from Portfolio Manager).
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Portfolio {
     /// Timestamp of the portfolio state (unix millis).
     pub timestamp: u128,
@@ -70,8 +70,14 @@ impl Portfolio {
         if quantity == 0.0 {
             self.positions.remove(&instrument_id);
         } else {
-            self.positions
-                .insert(instrument_id, Position::new(instrument_id, quantity));
+            self.positions.insert(
+                instrument_id,
+                Position {
+                    instrument_id,
+                    quantity,
+                    urgency: None,
+                },
+            );
         }
     }
 
