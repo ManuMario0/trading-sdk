@@ -9,4 +9,8 @@ impl LineageId {
     pub fn new(value: u64) -> Self {
         Self(value)
     }
+
+    pub fn get_inner(&self) -> u64 {
+        self.0
+    }
 }
