@@ -4,19 +4,22 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{Allocation, ExecutionResult, InstrumentId, Order, identity::Identity};
+use crate::{
+    Allocation, ExecutionResult, InstrumentId, Order, identity::Identity,
+    journal::lineage::LineageId,
+};
 
 /// A structured event that can be recorded for audit/replay.
 #[derive(Serialize, Deserialize)]
-pub struct JournalEntry<Lineage> {
+pub struct JournalEntry {
     /// Auto-assigned by the runtime
-    pub lineage_id: Lineage,
+    pub lineage_id: LineageId,
     /// Millisecond timestamp
     pub timestamp: u128,
     /// Which component emitted this
     pub source: Identity,
     /// Correlation ID — ties together events in the same causal chain
-    pub parents: Vec<Lineage>,
+    pub parents: Vec<LineageId>,
     /// The actual event payload
     pub event: JournalEvent,
 }
