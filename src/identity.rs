@@ -5,6 +5,16 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct AgentId(usize);
 
+impl AgentId {
+    pub fn new(value: usize) -> Self {
+        Self(value)
+    }
+
+    pub fn get_inner(&self) -> usize {
+        self.0
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Identity {
     name: String,
