@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn test_allocation_update() {
-        let mut allocation = Allocation::new(LineageId::new(1), Urgency::BestEffort);
+        let mut allocation = Allocation::new(LineageId(1), Urgency::BestEffort);
 
         // Add position
         allocation.update_position(1, 10.0);
