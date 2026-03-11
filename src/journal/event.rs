@@ -1,31 +1,13 @@
 //! An event is a point in time representing a decision and it's dependencies.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    Allocation, ExecutionResult, InstrumentId, Order, identity::Identity,
-    journal::lineage::LineageId,
-};
-
-/// A structured event that can be recorded for audit/replay.
-#[derive(Serialize, Deserialize)]
-pub struct JournalEntry {
-    /// Auto-assigned by the runtime
-    pub lineage_id: LineageId,
-    /// Millisecond timestamp
-    pub timestamp: u128,
-    /// Which component emitted this
-    pub source: Identity,
-    /// Correlation ID — ties together events in the same causal chain
-    pub parents: Vec<LineageId>,
-    /// The actual event payload
-    pub event: JournalEvent,
-}
+use crate::InstrumentId;
 
 #[derive(Serialize, Deserialize)]
-pub enum JournalEvent {
+pub enum ServiceEvent {
     /// Strategy explains its reasoning (structured, not free text)
     StrategySignal {
         instrument_id: InstrumentId,
@@ -34,24 +16,29 @@ pub enum JournalEvent {
         metadata: HashMap<String, f64>,
     },
     /// Free-form annotation (for when structured doesn't fit)
-    Annotation {
-        level: LogLevel,
-        message: String,
-    },
-    /// SDK auto-logs these — no user action needed
-    MarketDataReceived {
-        batch_size: usize,
-        window: (u64, u64),
-    },
-    AllocationGenerated {
-        allocation: Allocation,
-    },
-    OrderSubmitted {
-        order: Order,
-    },
-    ExecutionReceived {
-        result: ExecutionResult,
-    },
+    Annotation { level: LogLevel, message: String },
+}
+
+impl Display for ServiceEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ServiceEvent::StrategySignal {
+                instrument_id,
+                signal_name,
+                signal_value,
+                metadata,
+            } => {
+                write!(
+                    f,
+                    "StrategySignal[instrument_id: {}, signal_name: {}, signal_value: {}, metadata: {:?}]",
+                    instrument_id, signal_name, signal_value, metadata
+                )
+            }
+            ServiceEvent::Annotation { level, message } => {
+                write!(f, "Annotation[level: {}, message: {}]", level, message)
+            }
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -59,4 +46,14 @@ pub enum LogLevel {
     Info,
     Warn,
     Error,
+}
+
+impl Display for LogLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LogLevel::Info => write!(f, "INFO"),
+            LogLevel::Warn => write!(f, "WARN"),
+            LogLevel::Error => write!(f, "ERROR"),
+        }
+    }
 }

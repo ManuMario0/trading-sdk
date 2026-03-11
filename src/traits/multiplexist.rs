@@ -1,4 +1,4 @@
-use crate::{Allocation, identity::AgentId, model::context::Context};
+use crate::{Allocation, identity::ServiceId, model::context::Context};
 
 pub trait Multiplexist: Send {
     /// Called when the Multiplexer receives a batch of allocations from a source.
@@ -15,7 +15,7 @@ pub trait Multiplexist: Send {
     fn on_allocation(
         &mut self,
         context: Context,
-        source_id: AgentId,
+        source_id: ServiceId,
         batch: Allocation,
     ) -> Allocation;
 }
@@ -24,7 +24,7 @@ impl Multiplexist for Box<dyn Multiplexist> {
     fn on_allocation(
         &mut self,
         context: Context,
-        source_id: AgentId,
+        source_id: ServiceId,
         batch: Allocation,
     ) -> Allocation {
         (**self).on_allocation(context, source_id, batch)
