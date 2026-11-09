@@ -2,9 +2,9 @@
 //!
 //! This module handles querying instruments. Persistence is handled by the runtime.
 
-use crate::model::instrument::InstrumentId;
-use crate::model::Instrument;
 use std::collections::HashMap;
+
+use crate::model::instrument::{Instrument, InstrumentId};
 
 /// A database for trading instruments.
 #[derive(Debug, Default)]

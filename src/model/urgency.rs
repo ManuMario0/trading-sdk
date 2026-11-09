@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 /// How urgently an allocation change should be executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Urgency {
     /// Execute as fast as possible. For time-critical signals.
     Immediate,
@@ -18,7 +18,7 @@ pub enum Urgency {
     BestEffort,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum ExecutionStyle {
     /// Time-weighted average price — spread evenly over the window.
     TWAP,

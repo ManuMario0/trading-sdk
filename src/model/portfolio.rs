@@ -1,10 +1,20 @@
-use std::collections::HashMap;
+//! Defines the model of a real portfolio.
+//!
+//! A portfolio is responsible to track open positions as well as available cash.
+//! It is an abstraction used both for the `TargetPortfolio` which represent the portfolio that
+//! has been synthesized earlier in the pipeline and the `ActualPortfolio` which is the current
+//! portfolio.
+//!
+//! The structure mirrors the one of [`Allocation`](crate::model::allocation::Allocation) except that the
+//! positions quantities are expressed in terms of product quantities rather than in terms of portfolio
+//! capital allocations.
+//!
+//! The current implementation assumes `USD` as the base currency and do not enable yet forex and investments
+//! in other base currency.
+
 use std::fmt;
 
 use serde::{Deserialize, Serialize};
-
-use crate::model::allocation::Position;
-use crate::model::instrument::InstrumentId;
 
 /// Errors that can occur when mutating a `CashBalance`.
 #[derive(Debug, Clone, PartialEq)]
@@ -29,11 +39,19 @@ pub enum CashError {
 impl fmt::Display for CashError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            CashError::InsufficientFunds { currency, requested, available } => write!(
+            CashError::InsufficientFunds {
+                currency,
+                requested,
+                available,
+            } => write!(
                 f,
                 "insufficient funds in {currency}: requested {requested:.4}, available {available:.4}"
             ),
-            CashError::ReleaseExceedsReserved { currency, requested, reserved } => write!(
+            CashError::ReleaseExceedsReserved {
+                currency,
+                requested,
+                reserved,
+            } => write!(
                 f,
                 "release of {requested:.4} {currency} exceeds reserved amount {reserved:.4}"
             ),
@@ -281,9 +299,18 @@ mod cash_tests {
     #[test]
     fn invalid_amount_rejected() {
         let mut bal = usd(1000.0, 1000.0);
-        assert!(matches!(bal.reserve(-10.0), Err(CashError::InvalidAmount { .. })));
-        assert!(matches!(bal.credit(0.0), Err(CashError::InvalidAmount { .. })));
-        assert!(matches!(bal.release(-5.0), Err(CashError::InvalidAmount { .. })));
+        assert!(matches!(
+            bal.reserve(-10.0),
+            Err(CashError::InvalidAmount { .. })
+        ));
+        assert!(matches!(
+            bal.credit(0.0),
+            Err(CashError::InvalidAmount { .. })
+        ));
+        assert!(matches!(
+            bal.release(-5.0),
+            Err(CashError::InvalidAmount { .. })
+        ));
     }
 
     #[test]
@@ -298,77 +325,3 @@ mod cash_tests {
         assert_eq!(bal.reserved(), 0.0);
     }
 }
-
-/// Represents the consolidated state of an account, including cash and positions.
-/// This structure is used for both the "Actual" state (from Execution Engine)
-/// and the "Target" state (from Portfolio Manager).
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct Portfolio {
-    /// Timestamp of the portfolio state (unix millis).
-    pub timestamp: u128,
-    /// Cash balances keyed by currency code.
-    pub cash: HashMap<String, CashBalance>,
-    /// Positions keyed by InstrumentId.
-    pub positions: HashMap<InstrumentId, Position>,
-    /// Total Net Asset Value (Equity) estimation in the base currency.
-    pub total_equity: f64,
-}
-
-impl Portfolio {
-    pub fn new() -> Self {
-        Self {
-            timestamp: std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_millis(),
-            cash: HashMap::new(),
-            positions: HashMap::new(),
-            total_equity: 0.0,
-        }
-    }
-
-    pub fn with_equity(mut self, equity: f64) -> Self {
-        self.total_equity = equity;
-        self
-    }
-
-    pub fn set_cash(&mut self, currency: &str, amount: f64) {
-        self.cash.insert(
-            currency.to_string(),
-            CashBalance::new(currency, amount, amount),
-        );
-    }
-
-    pub fn update_position(&mut self, instrument_id: InstrumentId, quantity: f64) {
-        if quantity == 0.0 {
-            self.positions.remove(&instrument_id);
-        } else {
-            self.positions.insert(
-                instrument_id,
-                Position {
-                    instrument_id,
-                    quantity,
-                    urgency: None,
-                },
-            );
-        }
-    }
-
-    pub fn get_position(&self, instrument_id: &InstrumentId) -> Option<&Position> {
-        self.positions.get(instrument_id)
-    }
-
-    pub fn get_cash(&self, currency: &str) -> Option<&CashBalance> {
-        self.cash.get(currency)
-    }
-}
-
-/// NewType wrapper representing the ACTUAL state of the portfolio.
-/// This comes from the Execution Engine or Broker.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Actual(pub Portfolio);
-
-/// NewType wrapper representing the TARGET state of the portfolio.
-/// This is generated by the Portfolio Manager (Policy Checks/Optimization).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Target(pub Portfolio);

@@ -1,4 +1,4 @@
-use crate::Allocation;
+use crate::model::allocation::Allocation;
 use crate::model::context::Context;
 use crate::model::market_data::MarketDataBatch;
 
