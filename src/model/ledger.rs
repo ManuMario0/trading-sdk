@@ -5,7 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::InstrumentId;
+use crate::model::{instrument::InstrumentId, price::Price};
 
 /// A ledger update represent a snapshot of some ledger account.
 ///
@@ -14,13 +14,13 @@ use crate::InstrumentId;
 #[derive(Serialize, Deserialize)]
 pub struct LedgerUpdate {
     pub timestamp: u128,
-    pub total_equity: u64,
+    pub total_equity: Price,
     pub last_closed_trade: Option<ClosedTrade>,
 }
 
 /// A close trade provide the P&L of the specific trade (fees included when available).
 #[derive(Serialize, Deserialize)]
 pub struct ClosedTrade {
-    pub pnl: u64,
+    pub pnl: Price,
     pub instrument_id: InstrumentId,
 }

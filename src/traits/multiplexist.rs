@@ -1,8 +1,6 @@
-use crate::{
-    Allocation,
-    identity::ServiceId,
-    model::{context::Context, ledger::LedgerUpdate},
-};
+use crate::identity::ServiceId;
+use crate::model::allocation::Allocation;
+use crate::model::{context::Context, ledger::LedgerUpdate};
 
 pub trait Multiplexist: Send {
     /// Called when the Multiplexer receives a batch of allocations from a source.

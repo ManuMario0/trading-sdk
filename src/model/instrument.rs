@@ -16,13 +16,34 @@ pub enum Instrument {
 /// Represents a Futures contract.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Future {
-    // Stub
+    pub id: InstrumentId,
+    pub symbol: String,
+    pub underlying: String,
+    pub expiry: u128, // unix millis
+    pub contract_size: f64,
+    pub currency: String,
+    pub exchange: String,
 }
 
 /// Represents an Options contract.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct OptionContract {
-    // Stub
+    pub id: InstrumentId,
+    pub symbol: String,
+    pub underlying: String,
+    pub expiry: u128,
+    pub strike: u64,
+    pub option_type: OptionType, // Call / Put
+    pub contract_size: f64,
+    pub currency: String,
+    pub exchange: String,
+}
+
+/// Represents the type of an Options contract (Call or Put).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum OptionType {
+    Call,
+    Put,
 }
 
 /// Represents a Stock/Equity instrument.

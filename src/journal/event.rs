@@ -4,18 +4,18 @@ use std::{collections::HashMap, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 
-use crate::InstrumentId;
+use crate::model::instrument::InstrumentId;
 
 #[derive(Serialize, Deserialize)]
 pub enum ServiceEvent {
-    /// Strategy explains its reasoning (structured, not free text)
+    /// Strategy explains its reasoning
     StrategySignal {
         instrument_id: InstrumentId,
         signal_name: String,
         signal_value: f64,
         metadata: HashMap<String, f64>,
     },
-    /// Free-form annotation (for when structured doesn't fit)
+    /// Free-form annotation
     Annotation { level: LogLevel, message: String },
 }
 

@@ -4,7 +4,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{InstrumentId, journal::lineage::LineageId};
+use crate::journal::lineage::LineageId;
+use crate::model::instrument::InstrumentId;
+use crate::model::price::Price;
 
 /// The side of an order (Buy/Sell).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -33,7 +35,7 @@ pub struct Order {
     /// Type of the order (Limit/Market/Stop).
     pub order_type: OrderType,
     /// Price at which to execute (relevant for Limit orders).
-    pub price: u64,
+    pub price: Option<Price>,
     /// Quantity to trade.
     pub quantity: u64,
     /// Timestamp when the order was created (Unix timestamp).
